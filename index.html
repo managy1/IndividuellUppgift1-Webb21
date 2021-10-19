@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strange Store</title>
+    <style> body{margin: 25px;} </style>
+</head>
+<body>
+    <div id="filterOnRating">
+        <input id="ratingNumber"/>
+        <button id="filter" onclick="filterOnClick()">Filter by Rating</button>
+    </div>
+    <br>
+    <div id="showTotalPrice">Total Price: 0</div>
+    <h2>Shopping Cart</h2>
+    <div id="showShoppingCart"></div>
+    <br>
+    <hr>
+    <div id="productContainer"></div>
+
+    <script>
+        const storeAPIURL = `https://mock-data-api.firebaseio.com/webb21/products.json`
+        const productListContainer = document.getElementById("productContainer")
+
+        function filterOnClick() {
+            const ratingNumberInput = document.getElementById("ratingNumber")
+            const ratingValue = ratingNumberInput.value 
+            filterProducts(ratingValue)
+        }
+        function filterProducts(ratingValue) {
+            document.getElementById("productContainer").innerHTML = ""
+            renderProductList(products, ratingValue)
+        }
+        
+        let totalPrice = 0
+        let shoppingCart = ""
+        let products = []
+
+        function productBasket(productItem) {
+            const thisProductPrice = productItem.price              
+                totalPrice += thisProductPrice 
+                document.getElementById("showTotalPrice").innerText =  `Total Price: ${totalPrice}`
+
+            shoppingCart += `${productItem.name} - ${productItem.price}\n`
+                document.getElementById("showShoppingCart").innerText = shoppingCart            
+        }
+
+        function showProductItem(productItem) {
+            const wrapper = document.createElement("div")
+
+            const name = document.createElement("h1")
+            name.innerText = productItem.name
+            
+            const image = document.createElement("img")
+            image.src = productItem["images"][0]["src"]["small"]
+            image.alt = productItem["images"][0]["alt"]
+            image.style.width = "500px"
+            image.addEventListener("mouseover", function() {
+                image.style.cursor = "pointer"
+                })
+            image.addEventListener("click", function() {
+                productBasket(productItem)
+            })
+            
+            const description = document.createElement("p")
+            description.innerText = productItem.description
+
+            const price = document.createElement("p")
+            price.innerText = `Price: ${productItem.price}`
+
+            const rating = document.createElement("p")
+            rating.innerText = `Rating: ${productItem.rating}`
+
+            const stock = document.createElement("p")
+            stock.innerText = `Stock: ${productItem.stock}`
+
+            const buyButton = document.createElement("button")
+            buyButton.innerHTML = `Köp!`
+            buyButton.addEventListener("mouseover", function() {
+                buyButton.style.cursor = "pointer"
+                })
+            buyButton.addEventListener("click", function() {
+                productBasket(productItem)
+            })
+            const hr = document.createElement("hr")      
+
+            wrapper.appendChild(name)
+            wrapper.appendChild(image)
+            wrapper.appendChild(description)
+            wrapper.appendChild(price)
+            wrapper.appendChild(rating)
+            wrapper.appendChild(stock)
+            wrapper.appendChild(buyButton)
+            wrapper.appendChild(hr)
+
+            productListContainer.appendChild(wrapper)           
+        }
+
+        function renderProductList(data, ratingValue) {
+            console.log(data)
+            data.forEach(item => {
+                const productItem = item
+                if(productItem.rating >= ratingValue) {
+                showProductItem(productItem)
+                }
+            })
+        }
+        function getProductList() {
+            fetch(storeAPIURL)
+            .then(res => res.json())
+            .then(data => {
+                products = data
+                renderProductList(data, -1)
+            })
+        }      
+
+        getProductList()
+    </script>
+    
+</body>
+</html>
